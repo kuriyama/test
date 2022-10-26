@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+    branches: master
+
+jobs:
+  login:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Docker image
+        run: |
+          env | sort
+          t=ghcr.io/$GITHUB_ACTOR/test
+          d=`date +%Y%m%d`
+          docker build --tag ghcr.io/$GITHUB_ACTOR/test:latest .
