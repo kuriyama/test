@@ -1,4 +1,4 @@
-name: ci
+name: Build Docker image and push to ghcr.io
 
 on:
   push:
@@ -18,11 +18,16 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Docker image
         run: |
-          env | sort
           t=ghcr.io/$GITHUB_REPOSITORY
           date=`date +%Y%m%d`
-          docker build --tag $t:latest --tag $t:$date .
+          for ver in 12 14 16; do
+              mkdir -p work
+              sed -e "s|%%VER%%|$ver|" Dockerfile.tmpl > work/Dockerfile
+              cd work; docker build --tag $t:$ver --tag $t:$ver-$date .
+          done
       - name: Push Docker image
         run: |
-          docker push ghcr.io/$GITHUB_REPOSITORY:latest
-          docker push ghcr.io/$GITHUB_REPOSITORY:`date +%Y%m%d`
+          for ver in 12 14 16; do
+              docker push ghcr.io/$GITHUB_REPOSITORY:$ver
+              docker push ghcr.io/$GITHUB_REPOSITORY:$ver-`date +%Y%m%d`
+          done
