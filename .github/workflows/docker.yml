@@ -23,7 +23,7 @@ jobs:
           for ver in 12 14 16; do
               mkdir -p work
               sed -e "s|%%VER%%|$ver|" Dockerfile.tmpl > work/Dockerfile
-              cd work; docker build --tag $t:$ver --tag $t:$ver-$date .
+              (cd work; docker build --tag $t:$ver --tag $t:$ver-$date .)
           done
       - name: Push Docker image
         run: |
