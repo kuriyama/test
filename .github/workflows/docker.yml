@@ -19,6 +19,10 @@ jobs:
       - name: Build Docker image
         run: |
           env | sort
-          t=ghcr.io/$GITHUB_ACTOR/test
-          d=`date +%Y%m%d`
-          docker build --tag ghcr.io/$GITHUB_ACTOR/test:latest .
+          t=ghcr.io/$GITHUB_REPOSITORY
+          date=`date +%Y%m%d`
+          docker build --tag $t:latest --tag $t:$date .
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/$GITHUB_REPOSITORY:latest
+          docker push ghcr.io/$GITHUB_REPOSITORY:`date +%Y%m%d`
