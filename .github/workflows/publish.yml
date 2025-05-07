@@ -1,0 +1,40 @@
+name: Build public images
+
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/${{ github.repository }}/al2023-awscli:${{ github.ref_name }}
+
+      - name: Generate SHA256
+        run: |
+          digest=$(docker buildx imagetools inspect ghcr.io/${{ github.repository }}/al2023-awscli:${{ github.ref_name }} --format '{{json .Manifest.Digest}}')
+          echo -n "$digest" > al2023-awscli-${{ github.ref_name }}.sha256
+      - name: Upload SHA256 as Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: al2023-awscli-${{ github.ref_name }}.sha256
