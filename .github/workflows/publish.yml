@@ -31,12 +31,15 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository }}/al2023-awscli:${{ github.ref_name }}
-
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Generate SHA256
         run: |
-          digest=$(docker buildx imagetools inspect ghcr.io/${{ github.repository }}/al2023-awscli:${{ github.ref_name }} --format '{{json .Manifest.Digest}}')
-          echo -n "$digest" > al2023-awscli-${{ github.ref_name }}.sha256
+          digest=$(docker buildx imagetools inspect ghcr.io/${{ github.repository }}/al2023-awscli:${{ needs.build.outputs.tag }} --format '{{json .Manifest.Digest}}')
+          echo -n "$digest" > al2023-awscli-${{ needs.build.outputs.tag }}.sha256
       - name: Upload SHA256 as Release Asset
         uses: softprops/action-gh-release@v1
         with:
-          files: al2023-awscli-${{ github.ref_name }}.sha256
+          files: al2023-awscli-${{ needs.build.outputs.tag }}.sha256
